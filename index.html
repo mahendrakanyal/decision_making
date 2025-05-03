@@ -1,110 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Life Decision Spinner</title>
+  <meta charset="UTF-8">
+  <title>Collaborative To-Do Task Spinner</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
-      background: #f0f0f0;
-    }
-
-    .wheel-container {
-      position: relative;
-      width: 300px;
-      height: 300px;
-      margin: 2rem auto;
-    }
-
-    .wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 10px solid #444;
-      background: conic-gradient(
-        #f44336 0% 14%,
-        #e91e63 14% 28%,
-        #9c27b0 28% 42%,
-        #3f51b5 42% 56%,
-        #03a9f4 56% 70%,
-        #4caf50 70% 84%,
-        #ff9800 84% 100%
-      );
-      transition: transform 4s ease-out;
-    }
-
-    .arrow {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-bottom: 20px solid black;
-    }
-
-    button {
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      background-color: #2196f3;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 1rem;
-    }
-
-    .result {
-      font-size: 1.5rem;
-      margin-top: 2rem;
-    }
+    body { font-family: Arial; text-align: center; margin: 20px; }
+    textarea, input, button { margin: 10px; padding: 10px; }
+    .category { margin-top: 20px; }
+    .task-list { list-style: none; padding: 0; }
+    .task { margin: 5px; }
+    .wheel { margin: 40px auto; width: 300px; height: 300px; border: 10px solid #ccc; border-radius: 50%; position: relative; }
+    .wheel div { position: absolute; width: 50%; height: 50%; top: 50%; left: 50%; transform-origin: 0% 0%; }
+    #spinBtn { padding: 15px; font-size: 16px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+    #result { margin-top: 30px; font-size: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>🎯 Life Decision Spinner</h1>
-  <div class="wheel-container">
-    <div class="arrow"></div>
-    <div class="wheel" id="wheel"></div>
+
+<h1>🧠 Life Decision Spinner – To-Do List</h1>
+
+<input type="text" id="taskInput" placeholder="Enter your task">
+<select id="categorySelect">
+  <option value="1">Important & Urgent</option>
+  <option value="2">Important but Not Urgent</option>
+  <option value="3">Not Important but Urgent</option>
+  <option value="4">Not Important & Not Urgent</option>
+</select>
+<button onclick="addTask()">Add Task</button>
+
+<div id="taskSections">
+  <div class="category">
+    <h2>1. Important & Urgent</h2>
+    <ul id="cat1" class="task-list"></ul>
   </div>
-  <button onclick="spin()">Spin the Wheel</button>
-  <div class="result" id="result"></div>
+  <div class="category">
+    <h2>2. Important but Not Urgent</h2>
+    <ul id="cat2" class="task-list"></ul>
+  </div>
+  <div class="category">
+    <h2>3. Not Important but Urgent</h2>
+    <ul id="cat3" class="task-list"></ul>
+  </div>
+  <div class="category">
+    <h2>4. Not Important & Not Urgent</h2>
+    <ul id="cat4" class="task-list"></ul>
+  </div>
+</div>
 
-  <script>
-    const decisions = [
-      "Text them back 😬",
-      "Don't do it 😌",
-      "Quit your job 😱",
-      "Order pizza 🍕",
-      "Take a nap 😴",
-      "Go to the gym 💪",
-      "Watch Netflix 📺"
-    ];
+<h2>🎡 Spin the Wheel to Pick a Task</h2>
+<div class="wheel" id="wheel">
+  <div style="transform: rotate(0deg) skewY(-30deg); background: #FF6F61;">1</div>
+  <div style="transform: rotate(90deg) skewY(-30deg); background: #6B5B95;">2</div>
+  <div style="transform: rotate(180deg) skewY(-30deg); background: #88B04B;">3</div>
+  <div style="transform: rotate(270deg) skewY(-30deg); background: #F7CAC9;">4</div>
+</div>
+<button id="spinBtn" onclick="spinWheel()">Spin the Wheel</button>
 
-    let spinning = false;
+<div id="result"></div>
 
-    function spin() {
-      if (spinning) return;
-      spinning = true;
+<script>
+  const categories = {
+    1: [],
+    2: [],
+    3: [],
+    4: []
+  };
 
-      const wheel = document.getElementById("wheel");
-      const result = document.getElementById("result");
+  function addTask() {
+    const taskInput = document.getElementById('taskInput');
+    const category = document.getElementById('categorySelect').value;
+    const taskText = taskInput.value.trim();
+    if (!taskText) return;
+    categories[category].push(taskText);
+    updateTasks();
+    taskInput.value = '';
+  }
 
-      const randomDeg = Math.floor(Math.random() * 360 + 1080); // Multiple spins
-      wheel.style.transform = `rotate(${randomDeg}deg)`;
+  function deleteTask(category, index) {
+    categories[category].splice(index, 1);
+    updateTasks();
+  }
 
-      setTimeout(() => {
-        const finalDeg = randomDeg % 360;
-        const segment = Math.floor(finalDeg / (360 / decisions.length));
-        const selected = decisions[decisions.length - 1 - segment]; // Reverse order for clockwise
-        result.textContent = "💡 Decision: " + selected;
-        spinning = false;
-      }, 4000);
+  function updateTasks() {
+    for (let i = 1; i <= 4; i++) {
+      const list = document.getElementById('cat' + i);
+      list.innerHTML = '';
+      categories[i].forEach((task, idx) => {
+        const li = document.createElement('li');
+        li.className = 'task';
+        li.textContent = task + " ";
+        const del = document.createElement('button');
+        del.textContent = '❌';
+        del.onclick = () => deleteTask(i, idx);
+        li.appendChild(del);
+        list.appendChild(li);
+      });
     }
-  </script>
+  }
+
+  function spinWheel() {
+    const totalTasks = [].concat(...Object.values(categories));
+    if (totalTasks.length === 0) {
+      document.getElementById('result').textContent = 'No tasks available!';
+      return;
+    }
+
+    const categoryIndex = Math.floor(Math.random() * 4) + 1;
+    const tasks = categories[categoryIndex];
+
+    if (tasks.length === 0) {
+      document.getElementById('result').textContent = `Category ${categoryIndex} was selected, but it has no tasks. Try again!`;
+      return;
+    }
+
+    const task = tasks[Math.floor(Math.random() * tasks.length)];
+    document.getElementById('result').textContent = `🎯 Finish this task from Category ${categoryIndex}: "${task}"`;
+
+    // Simple spin animation (optional)
+    const wheel = document.getElementById('wheel');
+    const angle = 360 * 5 + (categoryIndex - 1) * 90; // 5 full spins + section
+    wheel.style.transition = 'transform 3s ease-out';
+    wheel.style.transform = `rotate(${angle}deg)`;
+  }
+</script>
+
 </body>
 </html>
