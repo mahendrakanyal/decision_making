@@ -3,60 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <title>Collaborative To-Do Task Spinner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: Arial; text-align: center; margin: 20px; }
-    textarea, input, button { margin: 10px; padding: 10px; }
-    .category { margin-top: 20px; }
-    .task-list { list-style: none; padding: 0; }
-    .task { margin: 5px; }
-    .wheel { margin: 40px auto; width: 300px; height: 300px; border: 10px solid #ccc; border-radius: 50%; position: relative; }
-    .wheel div { position: absolute; width: 50%; height: 50%; top: 50%; left: 50%; transform-origin: 0% 0%; }
-    #spinBtn { padding: 15px; font-size: 16px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-    #result { margin-top: 30px; font-size: 20px; font-weight: bold; }
+    .wheel div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.25rem;
+    }
   </style>
 </head>
-<body>
+<body class="bg-gradient-to-r from-gray-100 to-blue-100 text-center font-sans p-6 text-gray-800">
 
 <h1>🧠 Life Decision Spinner – To-Do List</h1>
 
-<input type="text" id="taskInput" placeholder="Enter your task">
-<select id="categorySelect">
+<input type="text" id="taskInput" placeholder="Enter your task" class="border border-gray-300 rounded px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400">
+<select id="categorySelect" class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
   <option value="1">Important & Urgent</option>
   <option value="2">Important but Not Urgent</option>
   <option value="3">Not Important but Urgent</option>
   <option value="4">Not Important & Not Urgent</option>
 </select>
-<button onclick="addTask()">Add Task</button>
+<button onclick="addTask()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+  Add Task
+</button>
 
 <div id="taskSections">
-  <div class="category">
-    <h2>1. Important & Urgent</h2>
-    <ul id="cat1" class="task-list"></ul>
+  <div class="category bg-white p-4 mt-6 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">1. Important & Urgent</h2>
+    <ul id="cat1" class="task-list list-none p-0"></ul>
   </div>
-  <div class="category">
-    <h2>2. Important but Not Urgent</h2>
-    <ul id="cat2" class="task-list"></ul>
+  <div class="category bg-white p-4 mt-6 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">2. Important but Not Urgent</h2>
+    <ul id="cat2" class="task-list list-none p-0"></ul>
   </div>
-  <div class="category">
-    <h2>3. Not Important but Urgent</h2>
-    <ul id="cat3" class="task-list"></ul>
+  <div class="category bg-white p-4 mt-6 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">3. Not Important but Urgent</h2>
+    <ul id="cat3" class="task-list list-none p-0"></ul>
   </div>
-  <div class="category">
-    <h2>4. Not Important & Not Urgent</h2>
-    <ul id="cat4" class="task-list"></ul>
+  <div class="category bg-white p-4 mt-6 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">4. Not Important & Not Urgent</h2>
+    <ul id="cat4" class="task-list list-none p-0"></ul>
   </div>
 </div>
-
-<h2>🎡 Spin the Wheel to Pick a Task</h2>
-<div class="wheel" id="wheel">
-  <div style="transform: rotate(0deg) skewY(-30deg); background: #FF6F61;">1</div>
-  <div style="transform: rotate(90deg) skewY(-30deg); background: #6B5B95;">2</div>
-  <div style="transform: rotate(180deg) skewY(-30deg); background: #88B04B;">3</div>
-  <div style="transform: rotate(270deg) skewY(-30deg); background: #F7CAC9;">4</div>
-</div>
-<button id="spinBtn" onclick="spinWheel()">Spin the Wheel</button>
-
-<div id="result"></div>
 
 <script>
   const categories = {
@@ -66,6 +56,15 @@
     4: []
   };
 
+  const savedData = localStorage.getItem('todoCategories');
+  if (savedData) {
+    const parsed = JSON.parse(savedData);
+    for (let i = 1; i <= 4; i++) {
+      categories[i] = parsed[i] || [];
+    }
+    updateTasks();
+  }
+
   function addTask() {
     const taskInput = document.getElementById('taskInput');
     const category = document.getElementById('categorySelect').value;
@@ -74,11 +73,13 @@
     categories[category].push(taskText);
     updateTasks();
     taskInput.value = '';
+    localStorage.setItem('todoCategories', JSON.stringify(categories));
   }
 
   function deleteTask(category, index) {
     categories[category].splice(index, 1);
     updateTasks();
+    localStorage.setItem('todoCategories', JSON.stringify(categories));
   }
 
   function updateTasks() {
@@ -87,40 +88,16 @@
       list.innerHTML = '';
       categories[i].forEach((task, idx) => {
         const li = document.createElement('li');
-        li.className = 'task';
+        li.className = 'task bg-blue-100 inline-block m-2 px-3 py-2 rounded';
         li.textContent = task + " ";
         const del = document.createElement('button');
         del.textContent = '❌';
+        del.className = 'ml-2 text-red-600 hover:text-red-800';
         del.onclick = () => deleteTask(i, idx);
         li.appendChild(del);
         list.appendChild(li);
       });
     }
-  }
-
-  function spinWheel() {
-    const totalTasks = [].concat(...Object.values(categories));
-    if (totalTasks.length === 0) {
-      document.getElementById('result').textContent = 'No tasks available!';
-      return;
-    }
-
-    const categoryIndex = Math.floor(Math.random() * 4) + 1;
-    const tasks = categories[categoryIndex];
-
-    if (tasks.length === 0) {
-      document.getElementById('result').textContent = `Category ${categoryIndex} was selected, but it has no tasks. Try again!`;
-      return;
-    }
-
-    const task = tasks[Math.floor(Math.random() * tasks.length)];
-    document.getElementById('result').textContent = `🎯 Finish this task from Category ${categoryIndex}: "${task}"`;
-
-    // Simple spin animation (optional)
-    const wheel = document.getElementById('wheel');
-    const angle = 360 * 5 + (categoryIndex - 1) * 90; // 5 full spins + section
-    wheel.style.transition = 'transform 3s ease-out';
-    wheel.style.transform = `rotate(${angle}deg)`;
   }
 </script>
 
