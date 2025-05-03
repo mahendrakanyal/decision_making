@@ -47,56 +47,82 @@
 </div>
 
 <script>
-  const categories = {
-    1: [],
-    2: [],
-    3: [],
-    4: []
-  };
+const BIN_ID = '6815db8d8960c979a5927246';
+const API_KEY = '$2a$10$MEV3mRCOefj71qPSmnl44e6W4.nkk/pF/tYU/n5p2NyY6x/S0QC62';
+const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-  const savedData = localStorage.getItem('todoCategories');
-  if (savedData) {
-    const parsed = JSON.parse(savedData);
-    for (let i = 1; i <= 4; i++) {
-      categories[i] = parsed[i] || [];
-    }
-    updateTasks();
-  }
+const categories = {
+  1: [],
+  2: [],
+  3: [],
+  4: []
+};
 
-  function addTask() {
-    const taskInput = document.getElementById('taskInput');
-    const category = document.getElementById('categorySelect').value;
-    const taskText = taskInput.value.trim();
-    if (!taskText) return;
-    categories[category].push(taskText);
-    updateTasks();
-    taskInput.value = '';
-    localStorage.setItem('todoCategories', JSON.stringify(categories));
-  }
+const headers = {
+  'Content-Type': 'application/json',
+  'X-Master-Key': API_KEY
+};
 
-  function deleteTask(category, index) {
-    categories[category].splice(index, 1);
-    updateTasks();
-    localStorage.setItem('todoCategories', JSON.stringify(categories));
-  }
+async function fetchTasks() {
+  const res = await fetch(`${API_URL}/latest`, { headers });
+  const json = await res.json();
+  const data = json.record;
 
-  function updateTasks() {
-    for (let i = 1; i <= 4; i++) {
-      const list = document.getElementById('cat' + i);
-      list.innerHTML = '';
-      categories[i].forEach((task, idx) => {
-        const li = document.createElement('li');
-        li.className = 'badge badge-info p-4 text-lg';
-        li.textContent = task + " ";
-        const del = document.createElement('button');
-        del.textContent = '❌';
-        del.className = 'ml-2 text-red-600 hover:text-red-800';
-        del.onclick = () => deleteTask(i, idx);
-        li.appendChild(del);
-        list.appendChild(li);
-      });
-    }
+  for (let i = 1; i <= 4; i++) {
+    categories[i] = data[i] || [];
   }
+  updateTasks();
+}
+
+async function addTask() {
+  const taskInput = document.getElementById('taskInput');
+  const category = document.getElementById('categorySelect').value;
+  const taskText = taskInput.value.trim();
+  if (!taskText) return;
+
+  categories[category].push(taskText);
+
+  await fetch(API_URL, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(categories)
+  });
+
+  taskInput.value = '';
+  fetchTasks();
+}
+
+async function deleteTask(category, index) {
+  categories[category].splice(index, 1);
+
+  await fetch(API_URL, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(categories)
+  });
+
+  fetchTasks();
+}
+
+function updateTasks() {
+  for (let i = 1; i <= 4; i++) {
+    const list = document.getElementById('cat' + i);
+    list.innerHTML = '';
+    categories[i].forEach((task, idx) => {
+      const li = document.createElement('li');
+      li.className = 'badge badge-info p-4 text-lg';
+      li.textContent = task + " ";
+      const del = document.createElement('button');
+      del.textContent = '❌';
+      del.className = 'ml-2 text-red-600 hover:text-red-800';
+      del.onclick = () => deleteTask(i, idx);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+  }
+}
+
+fetchTasks();
 </script>
 
 </body>
